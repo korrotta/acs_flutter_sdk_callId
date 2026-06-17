@@ -18,11 +18,25 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Needed for ACS UI Library dependencies and Surface Duo layout artifacts
+        maven { url "https://pkgs.dev.azure.com/azure-public/vside/_packaging/azure-communication-services-android/maven/v1" }
+        exclusiveContent {
+            forRepository {
+                maven { url "https://pkgs.dev.azure.com/SurfaceDuo/SurfaceDuoLayout/_packaging/SurfaceDuoLayout/maven/v1" }
+            }
+            filter { includeGroup("com.microsoft.device") }
+        }
+        flatDir {
+            dirs "libs"
+        }
     }
 }
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
+
+def enableUiLibrary = project.hasProperty("acsEnableUiLibrary") &&
+    project.property("acsEnableUiLibrary").toString().toBoolean()
 
 android {
     namespace = "com.burhanrabbani.acs_flutter_sdk"
@@ -40,13 +54,18 @@ android {
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
+        if (enableUiLibrary) {
+            main.java.srcDirs += "src/ui/kotlin"
+        }
     }
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
     }
 
     testOptions {
+        // Robolectric needs the merged Android resources/manifest available to JVM tests.
+        unitTests.includeAndroidResources = true
         unitTests.all {
             useJUnitPlatform()
             testLogging {
@@ -60,11 +79,24 @@ android {
 
 dependencies {
     // Azure Communication Services SDKs
+    // OPTIMIZATION: Removed chat dependency (not used, saves ~20-30 MB on Android)
     implementation("com.azure.android:azure-communication-calling:2.15.0")
-    implementation("com.azure.android:azure-communication-chat:2.0.3")
+    // implementation("com.azure.android:azure-communication-chat:2.0.3")  // OPTIMIZATION: Removed
     implementation("com.azure.android:azure-communication-common:1.2.1")
+    if (enableUiLibrary) {
+        implementation("com.azure.android:azure-communication-ui-calling:1.14.3")
+        implementation("com.azure.android:azure-communication-ui-chat:1.0.0-beta.3")
+    }
 
     // Test dependencies
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.mockito:mockito-core:5.0.0")
+    // Robolectric provides real Android view/Looper impls on the JVM so the
+    // ParticipantVideoRegistry (FrameLayout containers + main-thread Handler) can be
+    // unit-tested headlessly. It runs on JUnit 4, so the vintage engine bridges it
+    // onto the configured JUnit 5 platform.
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.2")
 }

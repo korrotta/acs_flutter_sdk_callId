@@ -1,3 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.burhanrabbani.acs_flutter_sdk">
+
+    <!-- Required for the screen-share foreground service. FOREGROUND_SERVICE is
+         needed from API 28+; FOREGROUND_SERVICE_MEDIA_PROJECTION is required from
+         API 34 (Android 14) for a mediaProjection-typed foreground service.
+         Declared here so the host app inherits them via manifest merge. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
+    <application>
+        <!-- Screen share foreground service - required for Android 12+ (API 31+) -->
+        <service
+            android:name=".AcsScreenShareService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+    </application>
+
 </manifest>

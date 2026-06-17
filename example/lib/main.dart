@@ -408,7 +408,6 @@ class _CallingTabState extends State<CallingTab> {
         _status = 'Error: $e';
         _isLoading = false;
       });
-      print(e.toString());
       _showError(e.toString());
     }
   }
@@ -697,300 +696,39 @@ class _CallingTabState extends State<CallingTab> {
   }
 }
 
-// Chat Tab
-class ChatTab extends StatefulWidget {
+// Chat Tab - Removed in v0.2.3 for size optimization
+class ChatTab extends StatelessWidget {
   final AcsFlutterSdk sdk;
 
   const ChatTab({super.key, required this.sdk});
 
   @override
-  State<ChatTab> createState() => _ChatTabState();
-}
-
-class _ChatTabState extends State<ChatTab> {
-  final _accessTokenController = TextEditingController();
-  final _endpointController = TextEditingController();
-  final _threadIdController = TextEditingController();
-  final _messageController = TextEditingController();
-  String _status = 'Not initialized';
-  bool _isLoading = false;
-  bool _isInThread = false;
-  final List<ChatMessage> _messages = [];
-  late AcsChatClient _chatClient;
-
-  @override
-  void initState() {
-    super.initState();
-    _chatClient = widget.sdk.createChatClient();
-  }
-
-  @override
-  void dispose() {
-    _accessTokenController.dispose();
-    _endpointController.dispose();
-    _threadIdController.dispose();
-    _messageController.dispose();
-    _chatClient.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeChat() async {
-    if (_accessTokenController.text.isEmpty) {
-      _showError('Please enter an access token');
-      return;
-    }
-    if (_endpointController.text.isEmpty) {
-      _showError('Please enter an ACS endpoint');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      await _chatClient.initialize(
-        _accessTokenController.text,
-        endpoint: _endpointController.text,
-      );
-      setState(() {
-        _status = 'Chat client initialized';
-        _isLoading = false;
-      });
-      _showSuccess('Chat client initialized');
-    } catch (e) {
-      setState(() {
-        _status = 'Error: $e';
-        _isLoading = false;
-      });
-      _showError(e.toString());
-    }
-  }
-
-  Future<void> _joinThread() async {
-    if (_threadIdController.text.isEmpty) {
-      _showError('Please enter thread ID');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      await _chatClient.joinChatThread(_threadIdController.text);
-      setState(() {
-        _status = 'Joined thread';
-        _isInThread = true;
-        _isLoading = false;
-      });
-      _showSuccess('Joined thread');
-      _loadMessages();
-    } catch (e) {
-      setState(() {
-        _status = 'Error: $e';
-        _isLoading = false;
-      });
-      _showError(e.toString());
-    }
-  }
-
-  Future<void> _loadMessages() async {
-    try {
-      if (_threadIdController.text.isEmpty) {
-        return;
-      }
-      final messages = await _chatClient.getMessages(_threadIdController.text);
-      setState(() {
-        _messages.clear();
-        _messages.addAll(messages);
-      });
-    } catch (e) {
-      _showError(e.toString());
-    }
-  }
-
-  Future<void> _sendMessage() async {
-    if (_messageController.text.isEmpty) {
-      _showError('Please enter a message');
-      return;
-    }
-
-    try {
-      await _chatClient.sendMessage(
-        _threadIdController.text,
-        _messageController.text,
-      );
-      _messageController.clear();
-      _showSuccess('Message sent');
-      _loadMessages();
-    } catch (e) {
-      _showError(e.toString());
-    }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Chat',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _accessTokenController,
-                  decoration: const InputDecoration(
-                    labelText: 'Access Token',
-                    hintText: 'Enter your access token',
-                    border: OutlineInputBorder(),
-                    helperText: 'Get this from your backend',
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _initializeChat,
-                  icon: const Icon(Icons.login),
-                  label: const Text('Initialize Chat Client'),
-                ),
-                const Divider(height: 32),
-                TextField(
-                  controller: _endpointController,
-                  decoration: const InputDecoration(
-                    labelText: 'ACS Endpoint',
-                    hintText: 'https://<RESOURCE>.communication.azure.com',
-                    border: OutlineInputBorder(),
-                    helperText:
-                        'Find this under Keys & Endpoint in the Azure Portal',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _threadIdController,
-                  decoration: const InputDecoration(
-                    labelText: 'Thread ID',
-                    hintText: 'Enter chat thread ID',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: _isLoading || _isInThread ? null : _joinThread,
-                  icon: const Icon(Icons.group),
-                  label: const Text('Join Thread'),
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Status',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(_status),
-                        if (_isInThread) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(Icons.circle, size: 12, color: Colors.green),
-                              const SizedBox(width: 8),
-                              const Text('In thread'),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isInThread) ...[
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Messages',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_messages.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No messages yet'),
-                      ),
-                    )
-                  else
-                    ..._messages.map(
-                      (message) => Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.person),
-                          ),
-                          title: Text(message.content),
-                          subtitle: Text(
-                            'From: ${message.senderId}\n${message.sentOn}',
-                          ),
-                          isThreeLine: true,
-                        ),
-                      ),
-                    ),
-                ],
-              ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_outlined, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 24),
+            const Text(
+              'Chat Removed',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-          ),
+            const SizedBox(height: 16),
+            Text(
+              'The Chat SDK was removed in v0.2.3 for size optimization.\n\n'
+              'For chat functionality, please use:\n'
+              '- AcsUiLibrary ChatComposite for pre-built UI\n'
+              '- Server-side chat implementation\n'
+              '- Azure Communication Services Chat SDK directly',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+          ],
         ),
-        if (_isInThread)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              border: Border(top: BorderSide(color: Colors.grey.shade300)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _sendMessage,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

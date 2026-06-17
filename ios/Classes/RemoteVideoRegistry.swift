@@ -1,39 +1,12 @@
-import AzureCommunicationCalling
-import UIKit
-
-class RemoteVideoRegistry {
-    private struct StreamHolder {
-        let renderer: VideoStreamRenderer
-        let view: UIView
-    }
-
-    private var holders: [Int: StreamHolder] = [:]
-
-    func start(stream: RemoteVideoStream) throws -> UIView {
-        let streamId = Int(stream.id)
-        if let existing = holders[streamId] {
-            return existing.view
-        }
-
-        let renderer = try VideoStreamRenderer(remoteVideoStream: stream)
-        let view = try renderer.createView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-
-        holders[streamId] = StreamHolder(renderer: renderer, view: view)
-        return view
-    }
-
-    func stop(streamId: Int) {
-        guard let holder = holders.removeValue(forKey: streamId) else { return }
-        holder.view.removeFromSuperview()
-        holder.renderer.dispose()
-    }
-
-    func clear() {
-        holders.values.forEach { holder in
-            holder.view.removeFromSuperview()
-            holder.renderer.dispose()
-        }
-        holders.removeAll()
-    }
-}
+//
+//  RemoteVideoRegistry.swift
+//
+//  RETIRED. The shared single-feed renderer registry was replaced by the single cached
+//  renderer owner, `RemoteVideoRenderManager`, which keys one `VideoStreamRenderer` per
+//  `participantId:streamId` and serves both the single-remote full-screen view and the
+//  grid tiles.
+//
+//  This file is intentionally left without code. It is kept (rather than removed) so the
+//  existing generated Pods project — which references this path in its compile sources —
+//  still builds without a fresh `pod install`. It may be deleted at the next install.
+//

@@ -160,6 +160,43 @@ void main() {
       expect(call.id, 'call-789');
     });
 
+    test('joinTeamsMeeting omits noiseSuppressionMode when not requested',
+        () async {
+      // Backward-compatibility contract: when the caller does not request a
+      // noise-suppression mode, the payload must NOT carry the key at all, so
+      // native code paths that predate the option receive the exact arguments
+      // they always did.
+      await client.joinTeamsMeeting('https://teams.microsoft.com/fake');
+
+      expect(log[0].arguments.containsKey('noiseSuppressionMode'), isFalse);
+    });
+
+    test('joinTeamsMeeting forwards noiseSuppressionMode to platform',
+        () async {
+      // When requested, the mode is sent across the channel so the native
+      // layer can build the outgoing-audio filter.
+      await client.joinTeamsMeeting(
+        'https://teams.microsoft.com/fake',
+        noiseSuppressionMode: 'auto',
+      );
+
+      expect(log[0].method, 'joinTeamsMeeting');
+      expect(log[0].arguments['noiseSuppressionMode'], 'auto');
+    });
+
+    test('joinTeamsMeeting lower-cases noiseSuppressionMode before sending',
+        () async {
+      // The documented case-insensitivity is guaranteed Dart-side, so the
+      // native matcher always receives a canonical lower-case token regardless
+      // of how the caller spelled it.
+      await client.joinTeamsMeeting(
+        'https://teams.microsoft.com/fake',
+        noiseSuppressionMode: 'Auto',
+      );
+
+      expect(log[0].arguments['noiseSuppressionMode'], 'auto');
+    });
+
     test('endCall calls platform method', () async {
       await client.endCall();
 
@@ -252,6 +289,11 @@ void main() {
           CallState.disconnected);
       expect(Call.fromMap({'id': '6', 'state': 'ringing'}).state,
           CallState.ringing);
+      expect(Call.fromMap({'id': '7', 'state': 'none'}).state, CallState.none);
+      expect(Call.fromMap({'id': '8', 'state': 'earlyMedia'}).state,
+          CallState.earlyMedia);
+      expect(Call.fromMap({'id': '9', 'state': 'remoteHold'}).state,
+          CallState.remoteHold);
     });
 
     test('fromMap defaults to disconnected for unknown state', () {
@@ -269,13 +311,17 @@ void main() {
 
   group('CallState', () {
     test('enum has all expected values', () {
-      expect(CallState.values, hasLength(6));
+      expect(CallState.values, hasLength(10));
+      expect(CallState.values, contains(CallState.none));
+      expect(CallState.values, contains(CallState.earlyMedia));
       expect(CallState.values, contains(CallState.connecting));
       expect(CallState.values, contains(CallState.connected));
       expect(CallState.values, contains(CallState.onHold));
+      expect(CallState.values, contains(CallState.remoteHold));
       expect(CallState.values, contains(CallState.disconnecting));
       expect(CallState.values, contains(CallState.disconnected));
       expect(CallState.values, contains(CallState.ringing));
+      expect(CallState.values, contains(CallState.inLobby));
     });
   });
 

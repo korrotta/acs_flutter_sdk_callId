@@ -49,5 +49,10 @@
 	<string>Camera access is required to start or join video calls.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone access is required to participate in ACS calls.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>voip</string>
+	</array>
 </dict>
 </plist>

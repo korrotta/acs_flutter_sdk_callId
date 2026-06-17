@@ -1,14 +1,13 @@
 /// Azure Communication Services Flutter SDK
 ///
 /// A Flutter plugin that wraps Microsoft Azure Communication Services (ACS),
-/// providing token-based access to calling and chat capabilities from Dart code.
+/// providing token-based access to calling capabilities from Dart code.
 ///
 /// ## Features
 ///
 /// - **Identity helpers** for development-time initialization (production flows remain server-side)
-/// - **Audio calling controls**: start, join, mute, unmute, and hang up calls
-/// - **Chat thread APIs**: create/join threads, send messages, list history
-/// - **Cross-platform** support targeting Android API 24+ and iOS 13+
+/// - **Audio/Video calling controls**: start, join, mute, unmute, screen share, and hang up calls
+/// - **Cross-platform** support targeting Android API 24+ and iOS 16+
 ///
 /// ## Getting Started
 ///
@@ -18,7 +17,7 @@
 ///
 /// ```yaml
 /// dependencies:
-///   acs_flutter_sdk: ^0.1.1
+///   acs_flutter_sdk: ^0.2.4
 /// ```
 ///
 /// ### Platform Setup
@@ -73,21 +72,25 @@ library;
 import 'package:flutter/services.dart';
 
 import 'src/calling/acs_calling.dart';
-import 'src/chat/acs_chat.dart';
 import 'src/identity/acs_identity.dart';
 
 export 'src/calling/acs_calling.dart';
+export 'src/calling/call_models.dart';
 export 'src/calling/video_views.dart';
-export 'src/chat/acs_chat.dart';
-// Export public APIs
 export 'src/identity/acs_identity.dart';
 export 'src/models/access_token.dart';
 export 'src/models/communication_user.dart';
+export 'src/models/remote_participant.dart';
+export 'src/models/device_info.dart';
+export 'src/models/capabilities.dart';
+export 'src/models/incoming_call.dart';
+export 'src/models/call_features.dart';
+export 'src/ui_library/acs_ui_library.dart';
 
 /// Main entry point for the Azure Communication Services Flutter SDK
 ///
 /// This class provides factory methods for creating clients for different
-/// ACS services (identity, calling, chat).
+/// ACS services (identity and calling).
 class AcsFlutterSdk {
   static const MethodChannel _channel = MethodChannel('acs_flutter_sdk');
 
@@ -108,8 +111,11 @@ class AcsFlutterSdk {
   /// Creates a new chat client for messaging (requires ACS endpoint during initialization)
   ///
   /// Returns an [AcsChatClient] instance
-  AcsChatClient createChatClient() {
-    return AcsChatClient(_channel);
+  /// OPTIMIZATION: Chat feature removed to reduce app size
+  @Deprecated('Chat functionality removed to reduce app size')
+  dynamic createChatClient() {
+    throw UnsupportedError(
+        'Chat functionality has been removed from this build');
   }
 
   /// Gets the platform version
