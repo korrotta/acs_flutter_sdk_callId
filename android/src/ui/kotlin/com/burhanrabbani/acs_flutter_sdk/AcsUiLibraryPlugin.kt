@@ -373,7 +373,8 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 "onCallStateChanged",
                 mapOf(
                     "state" to state,
-                    "nativeState" to callStateEvent.code.toString()
+                    "nativeState" to callStateEvent.code.toString(),
+                    "callId" to callStateEvent.callId
                 )
             )
         }

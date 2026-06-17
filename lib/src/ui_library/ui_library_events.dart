@@ -113,11 +113,15 @@ class AcsCallStateChangedEvent {
   /// The new call state
   final AcsCallState state;
 
-  const AcsCallStateChangedEvent({required this.state});
+  /// The call ID
+  final String? callId;
+
+  const AcsCallStateChangedEvent({required this.state, this.callId});
 
   factory AcsCallStateChangedEvent.fromMap(Map<String, dynamic> map) {
     return AcsCallStateChangedEvent(
       state: _parseCallState(map['state'] as String?),
+      callId: map['callId'] as String?,
     );
   }
 
