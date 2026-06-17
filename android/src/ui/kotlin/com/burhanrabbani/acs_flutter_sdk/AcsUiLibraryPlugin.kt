@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.View
 import android.util.Log
 import androidx.annotation.NonNull
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -102,6 +103,7 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             val locator = CallCompositeGroupCallLocator(UUID.fromString(groupId))
 
             activity?.let {
+                WindowCompat.setDecorFitsSystemWindows(it.window, true)
                 composite.launch(it, locator, localOptions)
                 callComposite = composite
                 result.success(null)
@@ -125,6 +127,7 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             val locator = CallCompositeTeamsMeetingLinkLocator(meetingLink)
 
             activity?.let {
+                WindowCompat.setDecorFitsSystemWindows(it.window, true)
                 composite.launch(it, locator, localOptions)
                 callComposite = composite
                 result.success(null)
@@ -150,6 +153,7 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             val locator = CallCompositeTeamsMeetingIdLocator(meetingId, meetingPasscode)
 
             activity?.let {
+                WindowCompat.setDecorFitsSystemWindows(it.window, true)
                 composite.launch(it, locator, localOptions)
                 callComposite = composite
                 result.success(null)
@@ -173,6 +177,7 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             val locator = CallCompositeRoomLocator(roomId)
 
             activity?.let {
+                WindowCompat.setDecorFitsSystemWindows(it.window, true)
                 composite.launch(it, locator, localOptions)
                 callComposite = composite
                 result.success(null)
@@ -199,6 +204,7 @@ class AcsUiLibraryPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
 
             activity?.let {
+                WindowCompat.setDecorFitsSystemWindows(it.window, true)
                 composite.launch(it, participants, localOptions)
                 callComposite = composite
                 result.success(null)
